@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIFA World Cup 2026 — AI Prediction & Betting Report</title>
+<style>
+  :root {
+    --bg: #0D0D0F; --surface: #161618; --surface2: #1F1F22;
+    --border: #2A2A2E; --text: #F0EEE6; --muted: #888780;
+    --accent-blue: #378ADD; --accent-green: #1D9E75; --accent-amber: #F59E0B;
+    --home: #185FA5; --away: #BA7517;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.5; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* Header */
+  .hero { text-align: center; padding: 3rem 0 2rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+  .hero h1 { font-size: clamp(24px, 4vw, 38px); font-weight: 600; letter-spacing: -0.5px; }
+  .hero h1 span { color: var(--accent-blue); }
+  .hero p { color: var(--muted); margin-top: 0.5rem; font-size: 13px; }
+  .hero .model-badge { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 4px 14px; font-size: 12px; color: var(--accent-green); margin-top: 1rem; }
+
+  /* Metrics */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 2rem; }
+  .metric { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .metric .m-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .metric .m-value { font-size: 26px; font-weight: 600; }
+  .metric .m-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Section */
+  .section { margin-bottom: 2.5rem; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+  .section-header h2 { font-size: 16px; font-weight: 600; }
+  .section-icon { font-size: 18px; }
+
+  /* Bet cards */
+  .bet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .bet-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; transition: border-color 0.15s; }
+  .bet-card:hover { border-color: var(--accent-blue); }
+  .bet-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .bet-teams { font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .bet-date { font-size: 11px; color: var(--muted); white-space: nowrap; margin-left: 8px; }
+  .vs { color: var(--muted); font-weight: 400; font-size: 12px; }
+  .bet-body { display: flex; flex-direction: column; gap: 6px; }
+  .bet-pick { display: flex; align-items: center; gap: 8px; }
+  .pick-label { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.8px; }
+  .pick-value { font-size: 15px; font-weight: 700; }
+  .bet-score { font-size: 12px; color: var(--muted); }
+  .bet-conf { display: flex; align-items: center; gap: 8px; }
+  .mini-bar { flex: 1; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .fair-odds { font-size: 12px; color: var(--muted); }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; }
+  th { background: var(--surface2); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); padding: 10px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+  .date-cell { color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .muted { color: var(--muted); }
+  .score-cell { font-weight: 600; font-size: 13px; white-space: nowrap; }
+  .pct-cell { text-align: center; }
+  .home-pct { color: var(--home); font-weight: 500; }
+  .draw-pct { color: var(--muted); }
+  .away-pct { color: var(--away); font-weight: 500; }
+  .odds-cell { color: var(--muted); font-size: 11px; text-align: center; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 8px; white-space: nowrap; letter-spacing: 0.2px; }
+  .conf-wrap { display: flex; align-items: center; gap: 6px; min-width: 90px; }
+  .conf-bar { flex: 1; height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .conf-fill { height: 100%; border-radius: 2px; }
+  .conf-label { font-size: 11px; font-weight: 600; min-width: 32px; }
+
+  /* Footer */
+  .footer { text-align: center; padding: 2rem 0; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; margin-top: 2rem; }
+
+  /* Search */
+  .table-controls { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .table-controls input, .table-controls select {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 7px 12px; border-radius: 8px; font-size: 13px; font-family: var(--font);
+  }
+  .table-controls input:focus, .table-controls select:focus { outline: none; border-color: var(--accent-blue); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>FIFA World Cup 2026 <span>AI Prediction Report</span></h1>
+    <p>Machine learning predictions for all 70 group stage matches · Built by WandiiLe (BICIOT IoT, DUT)</p>
+    <div class="model-badge">⚡ Gradient Boosting · 60% accuracy · 16,052 training matches</div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="metrics">
+    <div class="metric">
+      <div class="m-label">Matches predicted</div>
+      <div class="m-value">70</div>
+      <div class="m-sub">Group stage 2026</div>
+    </div>
+    <div class="metric">
+      <div class="m-label">Model accuracy</div>
+      <div class="m-value" style="color:var(--accent-green);">60%</div>
+      <div class="m-sub">Held-out test set</div>
+    </div>
+    <div class="metric">
+      <div class="m-label">Predicted home wins</div>
+      <div class="m-value" style="color:var(--home);">38</div>
+      <div class="m-sub">out of 70</div>
+    </div>
+    <div class="metric">
+      <div class="m-label">Predicted away wins</div>
+      <div class="m-value" style="color:var(--away);">26</div>
+      <div class="m-sub">out of 70</div>
+    </div>
+    <div class="metric">
+      <div class="m-label">Predicted draws</div>
+      <div class="m-value" style="color:var(--muted);">6</div>
+      <div class="m-sub">out of 70</div>
+    </div>
+    <div class="metric">
+      <div class="m-label">Training features</div>
+      <div class="m-value">17</div>
+      <div class="m-sub">Rolling stats, form, xG</div>
+    </div>
+  </div>
+
+  <!-- Best Bets -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🔥</span>
+      <h2>Top 12 High-Confidence Picks</h2>
+    </div>
+    <div class="bet-grid">
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">United States <span class="vs">vs</span> Paraguay</div>
+        <div class="bet-date">12 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#1D9E75;">United States Win</span>
+        </div>
+        <div class="bet-score">Score: <strong>2 – 1</strong></div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:74%;background:#1D9E75;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#1D9E75;font-weight:600;">74%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>1.35</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">Japan <span class="vs">vs</span> Sweden</div>
+        <div class="bet-date">25 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#1D9E75;">Japan Win</span>
+        </div>
+        <div class="bet-score">Score: <strong>3 – 0</strong></div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:74%;background:#1D9E75;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#1D9E75;font-weight:600;">74%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>1.35</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">Canada <span class="vs">vs</span> Bosnia and Herzegovina</div>
+        <div class="bet-date">12 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#1D9E75;">Canada Win</span>
+        </div>
+        <div class="bet-score">Score: <strong>2 – 1</strong></div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:71%;background:#1D9E75;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#1D9E75;font-weight:600;">71%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>1.41</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">England <span class="vs">vs</span> Ghana</div>
+        <div class="bet-date">23 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#378ADD;">England Win</span>
+        </div>
+        <div class="bet-score">Score: <strong>2 – 1</strong></div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:63%;background:#378ADD;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#378ADD;font-weight:600;">63%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>1.6</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">Netherlands <span class="vs">vs</span> Sweden</div>
+        <div class="bet-date">20 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#378ADD;">Netherlands Win</span>
+        </div>
+        <div class="bet-score">Score: <strong>2 – 1</strong></div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:60%;background:#378ADD;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#378ADD;font-weight:600;">60%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>1.67</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">Spain <span class="vs">vs</span> Saudi Arabia</div>
+        <div class="bet-date">21 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#378ADD;">Spain Win</span>
+        </div>
+        <div class="bet-score">Score: <strong>2 – 1</strong></div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:60%;background:#378ADD;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#378ADD;font-weight:600;">60%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>1.68</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">Scotland <span class="vs">vs</span> Morocco</div>
+        <div class="bet-date">19 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#378ADD;">Morocco Win</span>
+        </div>
+        <div class="bet-score">Score: <strong>1 – 2</strong></div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:59%;background:#378ADD;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#378ADD;font-weight:600;">59%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>1.69</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">Senegal <span class="vs">vs</span> Iraq</div>
+        <div class="bet-date">26 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#378ADD;">Senegal Win</span>
+        </div>
+        <div class="bet-score">Score: <strong>2 – 1</strong></div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:57%;background:#378ADD;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#378ADD;font-weight:600;">57%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>1.76</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">Uruguay <span class="vs">vs</span> Spain</div>
+        <div class="bet-date">26 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#378ADD;">Spain Win</span>
+        </div>
+        <div class="bet-score">Score: <strong>1 – 2</strong></div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:55%;background:#378ADD;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#378ADD;font-weight:600;">55%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>1.83</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">Uzbekistan <span class="vs">vs</span> Colombia</div>
+        <div class="bet-date">17 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#378ADD;">Uzbekistan Win</span>
+        </div>
+        <div class="bet-score">Score: <strong>2 – 1</strong></div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:55%;background:#378ADD;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#378ADD;font-weight:600;">55%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>1.83</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">Spain <span class="vs">vs</span> Cape Verde</div>
+        <div class="bet-date">15 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#378ADD;">Spain Win</span>
+        </div>
+        <div class="bet-score">Score: <strong>3 – 1</strong></div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:54%;background:#378ADD;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#378ADD;font-weight:600;">54%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>1.85</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">Switzerland <span class="vs">vs</span> Bosnia and Herzegovina</div>
+        <div class="bet-date">18 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#378ADD;">Switzerland Win</span>
+        </div>
+        <div class="bet-score">Score: <strong>2 – 1</strong></div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:54%;background:#378ADD;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#378ADD;font-weight:600;">54%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>1.85</strong></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Draw Bets -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🤝</span>
+      <h2>Draw Value Bets (≥38% draw probability)</h2>
+    </div>
+    <div class="bet-grid">
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">Mexico <span class="vs">vs</span> South Korea</div>
+        <div class="bet-date">18 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#888780;">Draw</span>
+        </div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:48%;background:#888780;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#888780;font-weight:600;">48%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>2.06</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">Paraguay <span class="vs">vs</span> Australia</div>
+        <div class="bet-date">25 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#888780;">Draw</span>
+        </div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:48%;background:#888780;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#888780;font-weight:600;">48%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>2.07</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">United States <span class="vs">vs</span> Turkey</div>
+        <div class="bet-date">25 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#888780;">Draw</span>
+        </div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:44%;background:#888780;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#888780;font-weight:600;">44%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>2.27</strong></div>
+      </div>
+    </div>
+    <div class="bet-card">
+      <div class="bet-header">
+        <div class="bet-teams">United States <span class="vs">vs</span> Australia</div>
+        <div class="bet-date">19 Jun 2026</div>
+      </div>
+      <div class="bet-body">
+        <div class="bet-pick">
+          <span class="pick-label">PICK</span>
+          <span class="pick-value" style="color:#888780;">Draw</span>
+        </div>
+        <div class="bet-conf">
+          <div class="mini-bar"><div style="width:38%;background:#888780;height:100%;border-radius:2px;"></div></div>
+          <span style="color:#888780;font-weight:600;">38%</span>
+        </div>
+        <div class="fair-odds">Fair odds: <strong>2.63</strong></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Full Table -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📋</span>
+      <h2>All 70 Group Stage Predictions</h2>
+    </div>
+    <div class="table-controls">
+      <input type="text" id="search" placeholder="Search team..." oninput="filterTable()" style="width:180px;">
+      <select onchange="filterTable()" id="outcome-filter">
+        <option value="">All outcomes</option>
+        <option value="Home">Home wins</option>
+        <option value="Away">Away wins</option>
+        <option value="Draw">Draws</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table id="pred-table">
+        <thead>
+          <tr>
+            <th>Date</th><th>Home</th><th></th><th>Away</th><th>Score</th>
+            <th>Prediction</th><th>H%</th><th>D%</th><th>A%</th><th>Confidence</th>
+            <th>Odds H</th><th>Odds D</th><th>Odds A</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          
+    <tr>
+      <td class="date-cell">12 Jun 2026</td>
+      <td><strong>Canada</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Bosnia and Herzegovina</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Canada Win</span></td>
+      <td class="pct-cell home-pct">71%</td>
+      <td class="pct-cell draw-pct">18%</td>
+      <td class="pct-cell away-pct">11%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:71%;background:#1D9E75;"></div></div>
+          <span class="conf-label" style="color:#1D9E75;">71%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.41</td>
+      <td class="odds-cell">5.42</td>
+      <td class="odds-cell">9.46</td>
+    </tr>
+    <tr>
+      <td class="date-cell">12 Jun 2026</td>
+      <td><strong>United States</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Paraguay</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">United States Win</span></td>
+      <td class="pct-cell home-pct">74%</td>
+      <td class="pct-cell draw-pct">18%</td>
+      <td class="pct-cell away-pct">8%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:74%;background:#1D9E75;"></div></div>
+          <span class="conf-label" style="color:#1D9E75;">74%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.35</td>
+      <td class="odds-cell">5.66</td>
+      <td class="odds-cell">12.28</td>
+    </tr>
+    <tr>
+      <td class="date-cell">13 Jun 2026</td>
+      <td><strong>Qatar</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Switzerland</strong></td>
+      <td class="score-cell">2 – 2</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Switzerland Win</span></td>
+      <td class="pct-cell home-pct">31%</td>
+      <td class="pct-cell draw-pct">33%</td>
+      <td class="pct-cell away-pct">35%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:35%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">35%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.21</td>
+      <td class="odds-cell">2.99</td>
+      <td class="odds-cell">2.82</td>
+    </tr>
+    <tr>
+      <td class="date-cell">13 Jun 2026</td>
+      <td><strong>Brazil</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Morocco</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Morocco Win</span></td>
+      <td class="pct-cell home-pct">33%</td>
+      <td class="pct-cell draw-pct">18%</td>
+      <td class="pct-cell away-pct">50%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:50%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">50%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.07</td>
+      <td class="odds-cell">5.6</td>
+      <td class="odds-cell">2.02</td>
+    </tr>
+    <tr>
+      <td class="date-cell">13 Jun 2026</td>
+      <td><strong>Haiti</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Scotland</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Haiti Win</span></td>
+      <td class="pct-cell home-pct">45%</td>
+      <td class="pct-cell draw-pct">35%</td>
+      <td class="pct-cell away-pct">20%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:45%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">45%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.2</td>
+      <td class="odds-cell">2.88</td>
+      <td class="odds-cell">5.04</td>
+    </tr>
+    <tr>
+      <td class="date-cell">13 Jun 2026</td>
+      <td><strong>Australia</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Turkey</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Australia Win</span></td>
+      <td class="pct-cell home-pct">49%</td>
+      <td class="pct-cell draw-pct">29%</td>
+      <td class="pct-cell away-pct">22%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:49%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">49%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.04</td>
+      <td class="odds-cell">3.42</td>
+      <td class="odds-cell">4.59</td>
+    </tr>
+    <tr>
+      <td class="date-cell">14 Jun 2026</td>
+      <td><strong>Germany</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Curaçao</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Germany Win</span></td>
+      <td class="pct-cell home-pct">42%</td>
+      <td class="pct-cell draw-pct">26%</td>
+      <td class="pct-cell away-pct">32%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:42%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">42%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.38</td>
+      <td class="odds-cell">3.8</td>
+      <td class="odds-cell">3.16</td>
+    </tr>
+    <tr>
+      <td class="date-cell">14 Jun 2026</td>
+      <td><strong>Ivory Coast</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Ecuador</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Ivory Coast Win</span></td>
+      <td class="pct-cell home-pct">49%</td>
+      <td class="pct-cell draw-pct">30%</td>
+      <td class="pct-cell away-pct">21%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:49%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">49%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.03</td>
+      <td class="odds-cell">3.3</td>
+      <td class="odds-cell">4.87</td>
+    </tr>
+    <tr>
+      <td class="date-cell">14 Jun 2026</td>
+      <td><strong>Netherlands</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Japan</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Japan Win</span></td>
+      <td class="pct-cell home-pct">37%</td>
+      <td class="pct-cell draw-pct">19%</td>
+      <td class="pct-cell away-pct">44%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:44%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">44%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.68</td>
+      <td class="odds-cell">5.38</td>
+      <td class="odds-cell">2.27</td>
+    </tr>
+    <tr>
+      <td class="date-cell">14 Jun 2026</td>
+      <td><strong>Sweden</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Tunisia</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Tunisia Win</span></td>
+      <td class="pct-cell home-pct">16%</td>
+      <td class="pct-cell draw-pct">31%</td>
+      <td class="pct-cell away-pct">54%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:54%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">54%</span>
+        </div>
+      </td>
+      <td class="odds-cell">6.44</td>
+      <td class="odds-cell">3.23</td>
+      <td class="odds-cell">1.87</td>
+    </tr>
+    <tr>
+      <td class="date-cell">15 Jun 2026</td>
+      <td><strong>Belgium</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Egypt</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Egypt Win</span></td>
+      <td class="pct-cell home-pct">37%</td>
+      <td class="pct-cell draw-pct">25%</td>
+      <td class="pct-cell away-pct">38%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:38%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">38%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.67</td>
+      <td class="odds-cell">4.08</td>
+      <td class="odds-cell">2.63</td>
+    </tr>
+    <tr>
+      <td class="date-cell">15 Jun 2026</td>
+      <td><strong>Iran</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>New Zealand</strong></td>
+      <td class="score-cell">1 – 2</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">New Zealand Win</span></td>
+      <td class="pct-cell home-pct">27%</td>
+      <td class="pct-cell draw-pct">31%</td>
+      <td class="pct-cell away-pct">43%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:43%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">43%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.76</td>
+      <td class="odds-cell">3.28</td>
+      <td class="odds-cell">2.33</td>
+    </tr>
+    <tr>
+      <td class="date-cell">15 Jun 2026</td>
+      <td><strong>Spain</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Cape Verde</strong></td>
+      <td class="score-cell">3 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Spain Win</span></td>
+      <td class="pct-cell home-pct">54%</td>
+      <td class="pct-cell draw-pct">21%</td>
+      <td class="pct-cell away-pct">25%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:54%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">54%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.85</td>
+      <td class="odds-cell">4.79</td>
+      <td class="odds-cell">4.0</td>
+    </tr>
+    <tr>
+      <td class="date-cell">15 Jun 2026</td>
+      <td><strong>Saudi Arabia</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Uruguay</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Saudi Arabia Win</span></td>
+      <td class="pct-cell home-pct">37%</td>
+      <td class="pct-cell draw-pct">36%</td>
+      <td class="pct-cell away-pct">27%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:37%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">37%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.72</td>
+      <td class="odds-cell">2.8</td>
+      <td class="odds-cell">3.64</td>
+    </tr>
+    <tr>
+      <td class="date-cell">16 Jun 2026</td>
+      <td><strong>France</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Senegal</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">France Win</span></td>
+      <td class="pct-cell home-pct">41%</td>
+      <td class="pct-cell draw-pct">22%</td>
+      <td class="pct-cell away-pct">37%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:41%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">41%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.44</td>
+      <td class="odds-cell">4.64</td>
+      <td class="odds-cell">2.68</td>
+    </tr>
+    <tr>
+      <td class="date-cell">16 Jun 2026</td>
+      <td><strong>Iraq</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Norway</strong></td>
+      <td class="score-cell">1 – 2</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Norway Win</span></td>
+      <td class="pct-cell home-pct">21%</td>
+      <td class="pct-cell draw-pct">26%</td>
+      <td class="pct-cell away-pct">53%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:53%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">53%</span>
+        </div>
+      </td>
+      <td class="odds-cell">4.77</td>
+      <td class="odds-cell">3.89</td>
+      <td class="odds-cell">1.88</td>
+    </tr>
+    <tr>
+      <td class="date-cell">16 Jun 2026</td>
+      <td><strong>Argentina</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Algeria</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Algeria Win</span></td>
+      <td class="pct-cell home-pct">24%</td>
+      <td class="pct-cell draw-pct">30%</td>
+      <td class="pct-cell away-pct">46%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:46%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">46%</span>
+        </div>
+      </td>
+      <td class="odds-cell">4.12</td>
+      <td class="odds-cell">3.35</td>
+      <td class="odds-cell">2.18</td>
+    </tr>
+    <tr>
+      <td class="date-cell">16 Jun 2026</td>
+      <td><strong>Austria</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Jordan</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Jordan Win</span></td>
+      <td class="pct-cell home-pct">33%</td>
+      <td class="pct-cell draw-pct">19%</td>
+      <td class="pct-cell away-pct">48%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:48%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">48%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.99</td>
+      <td class="odds-cell">5.27</td>
+      <td class="odds-cell">2.1</td>
+    </tr>
+    <tr>
+      <td class="date-cell">17 Jun 2026</td>
+      <td><strong>Portugal</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>DR Congo</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Portugal Win</span></td>
+      <td class="pct-cell home-pct">46%</td>
+      <td class="pct-cell draw-pct">34%</td>
+      <td class="pct-cell away-pct">20%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:46%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">46%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.17</td>
+      <td class="odds-cell">2.97</td>
+      <td class="odds-cell">4.91</td>
+    </tr>
+    <tr>
+      <td class="date-cell">17 Jun 2026</td>
+      <td><strong>Uzbekistan</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Colombia</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Uzbekistan Win</span></td>
+      <td class="pct-cell home-pct">55%</td>
+      <td class="pct-cell draw-pct">30%</td>
+      <td class="pct-cell away-pct">16%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:55%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">55%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.83</td>
+      <td class="odds-cell">3.37</td>
+      <td class="odds-cell">6.32</td>
+    </tr>
+    <tr>
+      <td class="date-cell">17 Jun 2026</td>
+      <td><strong>England</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Croatia</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">England Win</span></td>
+      <td class="pct-cell home-pct">47%</td>
+      <td class="pct-cell draw-pct">34%</td>
+      <td class="pct-cell away-pct">19%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:47%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">47%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.15</td>
+      <td class="odds-cell">2.94</td>
+      <td class="odds-cell">5.16</td>
+    </tr>
+    <tr>
+      <td class="date-cell">17 Jun 2026</td>
+      <td><strong>Ghana</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Panama</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Panama Win</span></td>
+      <td class="pct-cell home-pct">35%</td>
+      <td class="pct-cell draw-pct">26%</td>
+      <td class="pct-cell away-pct">38%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:38%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">38%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.82</td>
+      <td class="odds-cell">3.83</td>
+      <td class="odds-cell">2.6</td>
+    </tr>
+    <tr>
+      <td class="date-cell">18 Jun 2026</td>
+      <td><strong>Czech Republic</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>South Africa</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">South Africa Win</span></td>
+      <td class="pct-cell home-pct">30%</td>
+      <td class="pct-cell draw-pct">27%</td>
+      <td class="pct-cell away-pct">43%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:43%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">43%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.33</td>
+      <td class="odds-cell">3.77</td>
+      <td class="odds-cell">2.3</td>
+    </tr>
+    <tr>
+      <td class="date-cell">18 Jun 2026</td>
+      <td><strong>Mexico</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>South Korea</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#88878020;color:#888780;">Draw</span></td>
+      <td class="pct-cell home-pct">22%</td>
+      <td class="pct-cell draw-pct">48%</td>
+      <td class="pct-cell away-pct">30%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:48%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">48%</span>
+        </div>
+      </td>
+      <td class="odds-cell">4.57</td>
+      <td class="odds-cell">2.06</td>
+      <td class="odds-cell">3.37</td>
+    </tr>
+    <tr>
+      <td class="date-cell">18 Jun 2026</td>
+      <td><strong>Switzerland</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Bosnia and Herzegovina</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Switzerland Win</span></td>
+      <td class="pct-cell home-pct">54%</td>
+      <td class="pct-cell draw-pct">25%</td>
+      <td class="pct-cell away-pct">21%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:54%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">54%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.85</td>
+      <td class="odds-cell">3.94</td>
+      <td class="odds-cell">4.85</td>
+    </tr>
+    <tr>
+      <td class="date-cell">18 Jun 2026</td>
+      <td><strong>Canada</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Qatar</strong></td>
+      <td class="score-cell">1 – 2</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Qatar Win</span></td>
+      <td class="pct-cell home-pct">30%</td>
+      <td class="pct-cell draw-pct">26%</td>
+      <td class="pct-cell away-pct">44%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:44%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">44%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.33</td>
+      <td class="odds-cell">3.82</td>
+      <td class="odds-cell">2.28</td>
+    </tr>
+    <tr>
+      <td class="date-cell">19 Jun 2026</td>
+      <td><strong>Scotland</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Morocco</strong></td>
+      <td class="score-cell">1 – 2</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Morocco Win</span></td>
+      <td class="pct-cell home-pct">19%</td>
+      <td class="pct-cell draw-pct">22%</td>
+      <td class="pct-cell away-pct">59%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:59%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">59%</span>
+        </div>
+      </td>
+      <td class="odds-cell">5.17</td>
+      <td class="odds-cell">4.64</td>
+      <td class="odds-cell">1.69</td>
+    </tr>
+    <tr>
+      <td class="date-cell">19 Jun 2026</td>
+      <td><strong>Brazil</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Haiti</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Brazil Win</span></td>
+      <td class="pct-cell home-pct">44%</td>
+      <td class="pct-cell draw-pct">24%</td>
+      <td class="pct-cell away-pct">31%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:44%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">44%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.26</td>
+      <td class="odds-cell">4.09</td>
+      <td class="odds-cell">3.2</td>
+    </tr>
+    <tr>
+      <td class="date-cell">19 Jun 2026</td>
+      <td><strong>United States</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Australia</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#88878020;color:#888780;">Draw</span></td>
+      <td class="pct-cell home-pct">33%</td>
+      <td class="pct-cell draw-pct">38%</td>
+      <td class="pct-cell away-pct">29%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:38%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">38%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.03</td>
+      <td class="odds-cell">2.63</td>
+      <td class="odds-cell">3.46</td>
+    </tr>
+    <tr>
+      <td class="date-cell">19 Jun 2026</td>
+      <td><strong>Turkey</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Paraguay</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Turkey Win</span></td>
+      <td class="pct-cell home-pct">52%</td>
+      <td class="pct-cell draw-pct">35%</td>
+      <td class="pct-cell away-pct">13%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:52%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">52%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.92</td>
+      <td class="odds-cell">2.87</td>
+      <td class="odds-cell">7.62</td>
+    </tr>
+    <tr>
+      <td class="date-cell">20 Jun 2026</td>
+      <td><strong>Germany</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Ivory Coast</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Ivory Coast Win</span></td>
+      <td class="pct-cell home-pct">31%</td>
+      <td class="pct-cell draw-pct">17%</td>
+      <td class="pct-cell away-pct">52%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:52%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">52%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.25</td>
+      <td class="odds-cell">5.78</td>
+      <td class="odds-cell">1.93</td>
+    </tr>
+    <tr>
+      <td class="date-cell">20 Jun 2026</td>
+      <td><strong>Ecuador</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Curaçao</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Ecuador Win</span></td>
+      <td class="pct-cell home-pct">51%</td>
+      <td class="pct-cell draw-pct">23%</td>
+      <td class="pct-cell away-pct">26%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:51%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">51%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.96</td>
+      <td class="odds-cell">4.37</td>
+      <td class="odds-cell">3.82</td>
+    </tr>
+    <tr>
+      <td class="date-cell">20 Jun 2026</td>
+      <td><strong>Netherlands</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Sweden</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Netherlands Win</span></td>
+      <td class="pct-cell home-pct">60%</td>
+      <td class="pct-cell draw-pct">24%</td>
+      <td class="pct-cell away-pct">16%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:60%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">60%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.67</td>
+      <td class="odds-cell">4.19</td>
+      <td class="odds-cell">6.15</td>
+    </tr>
+    <tr>
+      <td class="date-cell">20 Jun 2026</td>
+      <td><strong>Tunisia</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Japan</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Tunisia Win</span></td>
+      <td class="pct-cell home-pct">50%</td>
+      <td class="pct-cell draw-pct">24%</td>
+      <td class="pct-cell away-pct">26%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:50%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">50%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.99</td>
+      <td class="odds-cell">4.17</td>
+      <td class="odds-cell">3.88</td>
+    </tr>
+    <tr>
+      <td class="date-cell">21 Jun 2026</td>
+      <td><strong>Belgium</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Iran</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Belgium Win</span></td>
+      <td class="pct-cell home-pct">40%</td>
+      <td class="pct-cell draw-pct">26%</td>
+      <td class="pct-cell away-pct">34%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:40%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">40%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.52</td>
+      <td class="odds-cell">3.84</td>
+      <td class="odds-cell">2.92</td>
+    </tr>
+    <tr>
+      <td class="date-cell">21 Jun 2026</td>
+      <td><strong>New Zealand</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Egypt</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Egypt Win</span></td>
+      <td class="pct-cell home-pct">37%</td>
+      <td class="pct-cell draw-pct">25%</td>
+      <td class="pct-cell away-pct">38%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:38%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">38%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.67</td>
+      <td class="odds-cell">4.02</td>
+      <td class="odds-cell">2.66</td>
+    </tr>
+    <tr>
+      <td class="date-cell">21 Jun 2026</td>
+      <td><strong>Spain</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Saudi Arabia</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Spain Win</span></td>
+      <td class="pct-cell home-pct">60%</td>
+      <td class="pct-cell draw-pct">26%</td>
+      <td class="pct-cell away-pct">14%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:60%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">60%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.68</td>
+      <td class="odds-cell">3.84</td>
+      <td class="odds-cell">6.92</td>
+    </tr>
+    <tr>
+      <td class="date-cell">21 Jun 2026</td>
+      <td><strong>Uruguay</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Cape Verde</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Uruguay Win</span></td>
+      <td class="pct-cell home-pct">53%</td>
+      <td class="pct-cell draw-pct">26%</td>
+      <td class="pct-cell away-pct">20%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:53%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">53%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.87</td>
+      <td class="odds-cell">3.8</td>
+      <td class="odds-cell">4.93</td>
+    </tr>
+    <tr>
+      <td class="date-cell">22 Jun 2026</td>
+      <td><strong>France</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Iraq</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">France Win</span></td>
+      <td class="pct-cell home-pct">47%</td>
+      <td class="pct-cell draw-pct">22%</td>
+      <td class="pct-cell away-pct">31%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:47%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">47%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.12</td>
+      <td class="odds-cell">4.64</td>
+      <td class="odds-cell">3.2</td>
+    </tr>
+    <tr>
+      <td class="date-cell">22 Jun 2026</td>
+      <td><strong>Norway</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Senegal</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Senegal Win</span></td>
+      <td class="pct-cell home-pct">29%</td>
+      <td class="pct-cell draw-pct">27%</td>
+      <td class="pct-cell away-pct">44%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:44%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">44%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.48</td>
+      <td class="odds-cell">3.7</td>
+      <td class="odds-cell">2.26</td>
+    </tr>
+    <tr>
+      <td class="date-cell">22 Jun 2026</td>
+      <td><strong>Argentina</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Austria</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Argentina Win</span></td>
+      <td class="pct-cell home-pct">49%</td>
+      <td class="pct-cell draw-pct">31%</td>
+      <td class="pct-cell away-pct">20%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:49%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">49%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.06</td>
+      <td class="odds-cell">3.22</td>
+      <td class="odds-cell">4.92</td>
+    </tr>
+    <tr>
+      <td class="date-cell">22 Jun 2026</td>
+      <td><strong>Jordan</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Algeria</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Algeria Win</span></td>
+      <td class="pct-cell home-pct">26%</td>
+      <td class="pct-cell draw-pct">31%</td>
+      <td class="pct-cell away-pct">44%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:44%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">44%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.89</td>
+      <td class="odds-cell">3.26</td>
+      <td class="odds-cell">2.29</td>
+    </tr>
+    <tr>
+      <td class="date-cell">23 Jun 2026</td>
+      <td><strong>Portugal</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Uzbekistan</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Uzbekistan Win</span></td>
+      <td class="pct-cell home-pct">37%</td>
+      <td class="pct-cell draw-pct">26%</td>
+      <td class="pct-cell away-pct">37%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:37%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">37%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.73</td>
+      <td class="odds-cell">3.86</td>
+      <td class="odds-cell">2.67</td>
+    </tr>
+    <tr>
+      <td class="date-cell">23 Jun 2026</td>
+      <td><strong>Colombia</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>DR Congo</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Colombia Win</span></td>
+      <td class="pct-cell home-pct">38%</td>
+      <td class="pct-cell draw-pct">35%</td>
+      <td class="pct-cell away-pct">26%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:38%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">38%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.61</td>
+      <td class="odds-cell">2.82</td>
+      <td class="odds-cell">3.81</td>
+    </tr>
+    <tr>
+      <td class="date-cell">23 Jun 2026</td>
+      <td><strong>England</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Ghana</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">England Win</span></td>
+      <td class="pct-cell home-pct">63%</td>
+      <td class="pct-cell draw-pct">29%</td>
+      <td class="pct-cell away-pct">9%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:63%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">63%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.6</td>
+      <td class="odds-cell">3.47</td>
+      <td class="odds-cell">11.67</td>
+    </tr>
+    <tr>
+      <td class="date-cell">23 Jun 2026</td>
+      <td><strong>Panama</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Croatia</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#88878020;color:#888780;">Draw</span></td>
+      <td class="pct-cell home-pct">29%</td>
+      <td class="pct-cell draw-pct">37%</td>
+      <td class="pct-cell away-pct">34%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:37%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">37%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.43</td>
+      <td class="odds-cell">2.69</td>
+      <td class="odds-cell">2.98</td>
+    </tr>
+    <tr>
+      <td class="date-cell">24 Jun 2026</td>
+      <td><strong>Mexico</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Czech Republic</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Mexico Win</span></td>
+      <td class="pct-cell home-pct">51%</td>
+      <td class="pct-cell draw-pct">34%</td>
+      <td class="pct-cell away-pct">15%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:51%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">51%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.95</td>
+      <td class="odds-cell">2.95</td>
+      <td class="odds-cell">6.73</td>
+    </tr>
+    <tr>
+      <td class="date-cell">24 Jun 2026</td>
+      <td><strong>South Africa</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>South Korea</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">South Korea Win</span></td>
+      <td class="pct-cell home-pct">26%</td>
+      <td class="pct-cell draw-pct">32%</td>
+      <td class="pct-cell away-pct">42%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:42%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">42%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.85</td>
+      <td class="odds-cell">3.13</td>
+      <td class="odds-cell">2.38</td>
+    </tr>
+    <tr>
+      <td class="date-cell">24 Jun 2026</td>
+      <td><strong>Canada</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Switzerland</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Canada Win</span></td>
+      <td class="pct-cell home-pct">46%</td>
+      <td class="pct-cell draw-pct">34%</td>
+      <td class="pct-cell away-pct">20%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:46%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">46%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.19</td>
+      <td class="odds-cell">2.91</td>
+      <td class="odds-cell">4.99</td>
+    </tr>
+    <tr>
+      <td class="date-cell">24 Jun 2026</td>
+      <td><strong>Bosnia and Herzegovina</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Qatar</strong></td>
+      <td class="score-cell">1 – 2</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Qatar Win</span></td>
+      <td class="pct-cell home-pct">16%</td>
+      <td class="pct-cell draw-pct">31%</td>
+      <td class="pct-cell away-pct">53%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:53%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">53%</span>
+        </div>
+      </td>
+      <td class="odds-cell">6.28</td>
+      <td class="odds-cell">3.21</td>
+      <td class="odds-cell">1.89</td>
+    </tr>
+    <tr>
+      <td class="date-cell">24 Jun 2026</td>
+      <td><strong>Scotland</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Brazil</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Brazil Win</span></td>
+      <td class="pct-cell home-pct">28%</td>
+      <td class="pct-cell draw-pct">24%</td>
+      <td class="pct-cell away-pct">48%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:48%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">48%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.6</td>
+      <td class="odds-cell">4.09</td>
+      <td class="odds-cell">2.09</td>
+    </tr>
+    <tr>
+      <td class="date-cell">24 Jun 2026</td>
+      <td><strong>Morocco</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Haiti</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Morocco Win</span></td>
+      <td class="pct-cell home-pct">50%</td>
+      <td class="pct-cell draw-pct">26%</td>
+      <td class="pct-cell away-pct">24%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:50%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">50%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.01</td>
+      <td class="odds-cell">3.79</td>
+      <td class="odds-cell">4.2</td>
+    </tr>
+    <tr>
+      <td class="date-cell">25 Jun 2026</td>
+      <td><strong>United States</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Turkey</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#88878020;color:#888780;">Draw</span></td>
+      <td class="pct-cell home-pct">28%</td>
+      <td class="pct-cell draw-pct">44%</td>
+      <td class="pct-cell away-pct">28%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:44%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">44%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.54</td>
+      <td class="odds-cell">2.27</td>
+      <td class="odds-cell">3.61</td>
+    </tr>
+    <tr>
+      <td class="date-cell">25 Jun 2026</td>
+      <td><strong>Paraguay</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Australia</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#88878020;color:#888780;">Draw</span></td>
+      <td class="pct-cell home-pct">16%</td>
+      <td class="pct-cell draw-pct">48%</td>
+      <td class="pct-cell away-pct">35%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:48%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">48%</span>
+        </div>
+      </td>
+      <td class="odds-cell">6.11</td>
+      <td class="odds-cell">2.07</td>
+      <td class="odds-cell">2.82</td>
+    </tr>
+    <tr>
+      <td class="date-cell">25 Jun 2026</td>
+      <td><strong>Curaçao</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Ivory Coast</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Ivory Coast Win</span></td>
+      <td class="pct-cell home-pct">28%</td>
+      <td class="pct-cell draw-pct">23%</td>
+      <td class="pct-cell away-pct">50%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:50%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">50%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.63</td>
+      <td class="odds-cell">4.4</td>
+      <td class="odds-cell">2.01</td>
+    </tr>
+    <tr>
+      <td class="date-cell">25 Jun 2026</td>
+      <td><strong>Ecuador</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Germany</strong></td>
+      <td class="score-cell">2 – 2</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Ecuador Win</span></td>
+      <td class="pct-cell home-pct">42%</td>
+      <td class="pct-cell draw-pct">23%</td>
+      <td class="pct-cell away-pct">35%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:42%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">42%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.37</td>
+      <td class="odds-cell">4.33</td>
+      <td class="odds-cell">2.87</td>
+    </tr>
+    <tr>
+      <td class="date-cell">25 Jun 2026</td>
+      <td><strong>Japan</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Sweden</strong></td>
+      <td class="score-cell">3 – 0</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Japan Win</span></td>
+      <td class="pct-cell home-pct">74%</td>
+      <td class="pct-cell draw-pct">18%</td>
+      <td class="pct-cell away-pct">8%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:74%;background:#1D9E75;"></div></div>
+          <span class="conf-label" style="color:#1D9E75;">74%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.35</td>
+      <td class="odds-cell">5.64</td>
+      <td class="odds-cell">12.24</td>
+    </tr>
+    <tr>
+      <td class="date-cell">25 Jun 2026</td>
+      <td><strong>Tunisia</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Netherlands</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Tunisia Win</span></td>
+      <td class="pct-cell home-pct">43%</td>
+      <td class="pct-cell draw-pct">35%</td>
+      <td class="pct-cell away-pct">22%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:43%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">43%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.33</td>
+      <td class="odds-cell">2.86</td>
+      <td class="odds-cell">4.52</td>
+    </tr>
+    <tr>
+      <td class="date-cell">26 Jun 2026</td>
+      <td><strong>Egypt</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Iran</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Egypt Win</span></td>
+      <td class="pct-cell home-pct">45%</td>
+      <td class="pct-cell draw-pct">27%</td>
+      <td class="pct-cell away-pct">29%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:45%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">45%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.24</td>
+      <td class="odds-cell">3.77</td>
+      <td class="odds-cell">3.47</td>
+    </tr>
+    <tr>
+      <td class="date-cell">26 Jun 2026</td>
+      <td><strong>New Zealand</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Belgium</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">New Zealand Win</span></td>
+      <td class="pct-cell home-pct">52%</td>
+      <td class="pct-cell draw-pct">22%</td>
+      <td class="pct-cell away-pct">26%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:52%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">52%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.92</td>
+      <td class="odds-cell">4.62</td>
+      <td class="odds-cell">3.82</td>
+    </tr>
+    <tr>
+      <td class="date-cell">26 Jun 2026</td>
+      <td><strong>Cape Verde</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Saudi Arabia</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Cape Verde Win</span></td>
+      <td class="pct-cell home-pct">42%</td>
+      <td class="pct-cell draw-pct">27%</td>
+      <td class="pct-cell away-pct">31%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:42%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">42%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.36</td>
+      <td class="odds-cell">3.71</td>
+      <td class="odds-cell">3.26</td>
+    </tr>
+    <tr>
+      <td class="date-cell">26 Jun 2026</td>
+      <td><strong>Uruguay</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Spain</strong></td>
+      <td class="score-cell">1 – 2</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Spain Win</span></td>
+      <td class="pct-cell home-pct">26%</td>
+      <td class="pct-cell draw-pct">19%</td>
+      <td class="pct-cell away-pct">55%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:55%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">55%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.81</td>
+      <td class="odds-cell">5.27</td>
+      <td class="odds-cell">1.83</td>
+    </tr>
+    <tr>
+      <td class="date-cell">26 Jun 2026</td>
+      <td><strong>Norway</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>France</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">France Win</span></td>
+      <td class="pct-cell home-pct">34%</td>
+      <td class="pct-cell draw-pct">22%</td>
+      <td class="pct-cell away-pct">44%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:44%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">44%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.95</td>
+      <td class="odds-cell">4.62</td>
+      <td class="odds-cell">2.25</td>
+    </tr>
+    <tr>
+      <td class="date-cell">26 Jun 2026</td>
+      <td><strong>Senegal</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Iraq</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Senegal Win</span></td>
+      <td class="pct-cell home-pct">57%</td>
+      <td class="pct-cell draw-pct">25%</td>
+      <td class="pct-cell away-pct">18%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:57%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">57%</span>
+        </div>
+      </td>
+      <td class="odds-cell">1.76</td>
+      <td class="odds-cell">3.95</td>
+      <td class="odds-cell">5.66</td>
+    </tr>
+    <tr>
+      <td class="date-cell">27 Jun 2026</td>
+      <td><strong>Algeria</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Austria</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Algeria Win</span></td>
+      <td class="pct-cell home-pct">50%</td>
+      <td class="pct-cell draw-pct">28%</td>
+      <td class="pct-cell away-pct">22%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:50%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">50%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.01</td>
+      <td class="odds-cell">3.52</td>
+      <td class="odds-cell">4.59</td>
+    </tr>
+    <tr>
+      <td class="date-cell">27 Jun 2026</td>
+      <td><strong>Jordan</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Argentina</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Jordan Win</span></td>
+      <td class="pct-cell home-pct">45%</td>
+      <td class="pct-cell draw-pct">19%</td>
+      <td class="pct-cell away-pct">36%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:45%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">45%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.22</td>
+      <td class="odds-cell">5.2</td>
+      <td class="odds-cell">2.79</td>
+    </tr>
+    <tr>
+      <td class="date-cell">27 Jun 2026</td>
+      <td><strong>Colombia</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Portugal</strong></td>
+      <td class="score-cell">1 – 2</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">Portugal Win</span></td>
+      <td class="pct-cell home-pct">28%</td>
+      <td class="pct-cell draw-pct">21%</td>
+      <td class="pct-cell away-pct">51%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:51%;background:#378ADD;"></div></div>
+          <span class="conf-label" style="color:#378ADD;">51%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.59</td>
+      <td class="odds-cell">4.78</td>
+      <td class="odds-cell">1.95</td>
+    </tr>
+    <tr>
+      <td class="date-cell">27 Jun 2026</td>
+      <td><strong>DR Congo</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Uzbekistan</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#88878020;color:#888780;">Draw</span></td>
+      <td class="pct-cell home-pct">32%</td>
+      <td class="pct-cell draw-pct">35%</td>
+      <td class="pct-cell away-pct">32%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:35%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">35%</span>
+        </div>
+      </td>
+      <td class="odds-cell">3.1</td>
+      <td class="odds-cell">2.83</td>
+      <td class="odds-cell">3.09</td>
+    </tr>
+    <tr>
+      <td class="date-cell">27 Jun 2026</td>
+      <td><strong>Panama</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>England</strong></td>
+      <td class="score-cell">1 – 1</td>
+      <td><span class="badge" style="background:#BA751720;color:#BA7517;">England Win</span></td>
+      <td class="pct-cell home-pct">22%</td>
+      <td class="pct-cell draw-pct">31%</td>
+      <td class="pct-cell away-pct">48%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:48%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">48%</span>
+        </div>
+      </td>
+      <td class="odds-cell">4.57</td>
+      <td class="odds-cell">3.26</td>
+      <td class="odds-cell">2.1</td>
+    </tr>
+    <tr>
+      <td class="date-cell">27 Jun 2026</td>
+      <td><strong>Croatia</strong></td>
+      <td class="muted">vs</td>
+      <td><strong>Ghana</strong></td>
+      <td class="score-cell">2 – 1</td>
+      <td><span class="badge" style="background:#185FA520;color:#185FA5;">Croatia Win</span></td>
+      <td class="pct-cell home-pct">44%</td>
+      <td class="pct-cell draw-pct">32%</td>
+      <td class="pct-cell away-pct">24%</td>
+      <td>
+        <div class="conf-wrap">
+          <div class="conf-bar"><div class="conf-fill" style="width:44%;background:#888780;"></div></div>
+          <span class="conf-label" style="color:#888780;">44%</span>
+        </div>
+      </td>
+      <td class="odds-cell">2.26</td>
+      <td class="odds-cell">3.16</td>
+      <td class="odds-cell">4.13</td>
+    </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Model Notes -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🧠</span>
+      <h2>Model Notes & Methodology</h2>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;line-height:1.8;color:var(--muted);font-size:13px;">
+      <p><strong style="color:var(--text);">Algorithm:</strong> Gradient Boosting Classifier (GBM) for outcome prediction; Random Forest Regressors for scoreline prediction.</p>
+      <p style="margin-top:8px;"><strong style="color:var(--text);">Training data:</strong> 16,052 competitive international matches from 1990–2026 including all FIFA World Cup finals, qualifiers, UEFA, CAF, AFC, CONMEBOL, and CONCACAF competitive fixtures.</p>
+      <p style="margin-top:8px;"><strong style="color:var(--text);">Features:</strong> Rolling goals scored/conceded, win rate, draw rate, recency-weighted form points, experience index, home/away differentials, neutral ground flag.</p>
+      <p style="margin-top:8px;"><strong style="color:var(--text);">Fair odds:</strong> Calculated as 1 / model probability. Real bookmaker odds will include a margin (~5–10%) — so if a bookie offers odds above the fair price, that's a value bet.</p>
+      <p style="margin-top:8px;"><strong style="color:var(--text);">Disclaimer:</strong> This is for analytical and educational purposes. Sports betting carries financial risk. Bet responsibly.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    Built with Python · scikit-learn · real FIFA data · Claude AI &nbsp;|&nbsp; WandiiLe · DUT BICIOT IoT · 2026
+  </div>
+
+</div>
+<script>
+function filterTable() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const outcome = document.getElementById('outcome-filter').value;
+  const rows = document.querySelectorAll('#table-body tr');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    const pred = row.cells[5].textContent;
+    const matchSearch = !search || text.includes(search);
+    let matchOutcome = true;
+    if (outcome === 'Home') matchOutcome = pred.includes('Win') && !pred.includes('Away');
+    else if (outcome === 'Away') matchOutcome = pred.toLowerCase().includes('win') && row.cells[5].querySelector('span').style.color.includes('BA');
+    else if (outcome === 'Draw') matchOutcome = pred.includes('Draw');
+    row.style.display = matchSearch && matchOutcome ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>
